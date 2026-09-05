@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Specta Quartz — Leave a Review</title>
+<style>
+  :root {
+    --bg: #0e1420; --card: #171f30; --card-2: #1e2839;
+    --text: #eef2f8; --muted: #93a0b4;
+    --accent: #4f8cff; --accent-2: #2f6fe0;
+    --gold: #f5b301; --green: #2ecc71; --danger: #ff5a5f;
+    --radius: 18px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; }
+  body {
+    font-family: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+    background: radial-gradient(1200px 800px at 20% -10%, #1b2b4a 0%, var(--bg) 55%);
+    color: var(--text);
+    display: flex; flex-direction: column; align-items: center;
+    min-height: 100dvh; padding: 16px;
+  }
+  header { text-align: center; margin: 18px 0 10px; }
+  header .logo {
+    width: 64px; height: 64px; border-radius: 18px; margin: 0 auto 12px;
+    background: linear-gradient(135deg, #4f8cff, #9a5cff);
+    display: flex; align-items: center; justify-content: center; font-size: 30px;
+    box-shadow: 0 10px 30px rgba(79,140,255,.35);
+  }
+  header h1 { font-size: 1.35rem; letter-spacing: .3px; }
+  header p { color: var(--muted); font-size: .9rem; margin-top: 6px; }
+  .wrap { width: 100%; max-width: 460px; flex: 1; display: flex; flex-direction: column; }
+  .card {
+    background: var(--card); border: 1px solid rgba(255,255,255,.06);
+    border-radius: var(--radius); padding: 22px; margin-top: 14px;
+    box-shadow: 0 14px 40px rgba(0,0,0,.35);
+  }
+  .step-tag {
+    display: inline-block; font-size: .72rem; letter-spacing: 1.2px;
+    text-transform: uppercase; color: var(--accent); font-weight: 700; margin-bottom: 10px;
+  }
+  h2 { font-size: 1.1rem; margin-bottom: 8px; }
+  .sub { color: var(--muted); font-size: .88rem; line-height: 1.5; margin-bottom: 16px; }
+  button {
+    width: 100%; border: 0; border-radius: 14px; padding: 15px 18px;
+    font-size: 1rem; font-weight: 600; color: #fff; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    transition: transform .08s ease, filter .15s ease;
+    font-family: inherit;
+  }
+  button:active { transform: scale(.98); }
+  .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent-2)); }
+  .btn-secondary { background: var(--card-2); border: 1px solid rgba(255,255,255,.1); }
+  .btn-gold { background: linear-gradient(135deg, #f7c948, #e8a200); color: #241a00; }
+  .btn-ghost { background: transparent; color: var(--muted); font-weight: 500; padding: 10px; }
+  .stack > * + * { margin-top: 12px; }
+  .hidden { display: none !important; }
+
+  .star-row { display: flex; justify-content: center; gap: 6px; margin: 4px 0 6px; }
+  .star {
+    font-size: 42px; line-height: 1; color: #39465e; cursor: pointer;
+    user-select: none; transition: transform .1s ease, color .15s ease;
+  }
+  .star.filled { color: var(--gold); text-shadow: 0 0 16px rgba(245,179,1,.35); }
+  .star:active { transform: scale(1.15); }
+  .rate-hint {
+    text-align: center; color: var(--muted); font-size: .8rem;
+    min-height: 20px; margin-bottom: 16px;
+  }
+  .section-label { font-size: .88rem; color: var(--muted); margin: 2px 0 10px; }
+  .chip-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+  .chip {
+    padding: 9px 14px; border-radius: 999px; font-size: .85rem; font-weight: 600;
+    background: var(--card-2); border: 1px solid rgba(255,255,255,.12);
+    color: var(--muted); cursor: pointer; user-select: none; transition: all .15s ease;
+  }
+  .chip.selected { background: rgba(79,140,255,.18); border-color: var(--accent); color: #cfe0ff; }
+
+  .loading-box { text-align: center; padding: 10px 0 4px; }
+  .spinner {
+    width: 46px; height: 46px; margin: 8px auto 16px; border-radius: 50%;
+    border: 4px solid rgba(255,255,255,.12); border-top-color: var(--accent);
+    animation: spin 1s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .error-box { text-align: center; color: #ffb4b6; font-size: .9rem; line-height: 1.5; }
+
+  .review-list {
+    max-height: 340px; overflow-y: auto; display: flex; flex-direction: column;
+    gap: 10px; padding: 3px; margin-bottom: 16px;
+  }
+  .review-card {
+    border: 1px solid rgba(255,255,255,.16); border-left: 4px solid #39465e;
+    border-radius: 12px; padding: 13px 14px; font-size: .88rem; line-height: 1.6;
+    color: #d7deea; cursor: pointer; transition: border-color .15s ease, background .15s ease;
+  }
+  .review-card.selected {
+    border-color: var(--gold); border-left-color: var(--gold);
+    background: rgba(245,179,1,.08); color: #fff;
+  }
+  .toast {
+    position: fixed; left: 50%; bottom: 30px; transform: translateX(-50%) translateY(80px);
+    background: var(--green); color: #04240f; font-weight: 700; font-size: .88rem;
+    padding: 12px 20px; border-radius: 999px; z-index: 99;
+    transition: transform .25s ease; box-shadow: 0 10px 30px rgba(0,0,0,.4);
+    max-width: 90vw; text-align: center;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.error { background: var(--danger); color: #fff; }
+  footer { color: var(--muted); font-size: .72rem; margin: 22px 0 8px; text-align: center; }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">💎</div>
+  <h1>Specta Quartz</h1>
+  <p>Rate us &amp; leave a Google review in under a minute</p>
+</header>
+
+<div class="wrap">
+
+  <!-- STEP 1 : rating + keywords -->
+  <div class="card" id="stepRate">
+    <span class="step-tag">Step 1 of 2</span>
+    <h2>How was your experience?</h2>
+    <div class="star-row" id="starRow">
+      <span class="star" data-v="1">★</span>
+      <span class="star" data-v="2">★</span>
+      <span class="star" data-v="3">★</span>
+      <span class="star" data-v="4">★</span>
+      <span class="star" data-v="5">★</span>
+    </div>
+    <div class="rate-hint" id="rateHint">Tap the stars to rate </div>
+    <div class="section-label">What stood out to you? <i>(tap to select)</i></div>
+    <div class="chip-row" id="chipRow"></div>
+    <button class="btn-primary" id="btnGenerate">Proceed&nbsp;→</button>
+  </div>
+
+  <!-- STEP 2a : loading -->
+  <div class="card hidden" id="stepLoading">
+    <span class="step-tag">Step 2 of 2</span>
+    <h2>Generating your review</h2>
+    <div class="loading-box" id="loadingBox">
+      <div class="spinner"></div>
+      <p class="sub" style="margin:0">
+        Writing a few review suggestions based on your rating…<br />
+        This usually takes 3–8 seconds.
+      </p>
+    </div>
+    <div class="error-box hidden" id="errorBox">
+      <p id="errorMsg"></p>
+      <div class="stack" style="margin-top:14px">
+        <button class="btn-primary" id="btnRetry">Try again</button>
+        <button class="btn-ghost" id="btnBackStart">← Back</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2b : pick a review -->
+  <div class="card hidden" id="stepResults">
+    <span class="step-tag">Step 2 of 2</span>
+    <h2>Pick a review you like</h2>
+    <p class="sub">Tap one to select it, then proceed below. You can always edit the text after pasting it on Google.</p>
+    <div class="review-list" id="reviewList"></div>
+    <div class="stack">
+      <button class="btn-gold" id="btnOpenGoogle">⭐&nbsp; Open Google &amp; Paste Review</button>
+      <button class="btn-secondary hidden" id="btnTryAlt">🔁&nbsp; Didn't open? Try Google Maps instead</button>
+      <button class="btn-ghost" id="btnRestart">← Start over</button>
+    </div>
+  </div>
+
+</div>
+
+<footer>Your rating &amp; keywords are sent only to generate suggestions — nothing else is stored.</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================= CONFIG ================= */
+const BUSINESS = {
+  name: "Specta Quartz",
+  kgmid: "/g/11h70tfkfc",
+  ftid: "0x390cddf8bd5ab9b3:0x341d7d5532bb854d",
+  lat: "28.4301966",
+  lng: "77.3051801",
+  placeId: "ChIJs7lavfjdDDkRTYW7MlV9HTQ",
+  searchQuery: "Specta+Quartz"
+};
+
+// ★ Paste your Cloudflare Worker URL here after deploying it, e.g.
+// const BACKEND_URL = "https://specta-reviews.your-name.workers.dev";
+const BACKEND_URL = "";
+
+const KEYWORDS = [
+  "Price",
+  "Quality",
+  "Collection & Variety",
+  "Customer Relation",
+  "Delivery & Installation",
+  "Showroom Experience",
+  "After-Sales Support"
+];
+
+const RATE_HINTS = { 1: "Poor", 2: "Fair", 3: "Good", 4: "Great", 5: "Excellent!" };
+
+let selectedStars = 0;
+let selectedKeywords = [];
+let selectedReview = null;
+
+/* ================= helpers ================= */
+const $ = function (id) { return document.getElementById(id); };
+const toastEl = $("toast");
+let toastTimer = null;
+
+function toast(msg, isError) {
+  toastEl.textContent = msg;
+  toastEl.classList.toggle("error", !!isError);
+  toastEl.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function () { toastEl.classList.remove("show"); }, 2800);
+}
+
+function showStep(stepId) {
+  ["stepRate", "stepLoading", "stepResults"].forEach(function (id) {
+    $(id).classList.toggle("hidden", id !== stepId);
+  });
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+/* ================= stars ================= */
+const starEls = Array.prototype.slice.call(document.querySelectorAll("#starRow .star"));
+
+function setStars(n) {
+  selectedStars = (selectedStars === n) ? 0 : n; // tap same star again to clear
+  starEls.forEach(function (el) {
+    el.classList.toggle("filled", Number(el.getAttribute("data-v")) <= selectedStars);
+  });
+  $("rateHint").textContent = selectedStars
+    ? RATE_HINTS[selectedStars] + (selectedStars < 5 ? " — tap the same star again to clear" : "")
+    : "Tap the stars to rate";
+}
+
+starEls.forEach(function (el) {
+  el.addEventListener("click", function () {
+    setStars(Number(el.getAttribute("data-v")));
+  });
+});
+
+/* ================= keyword chips ================= */
+const chipRow = $("chipRow");
+KEYWORDS.forEach(function (kw) {
+  const chip = document.createElement("span");
+  chip.className = "chip";
+  chip.textContent = kw;
+  chip.addEventListener("click", function () {
+    chip.classList.toggle("selected");
+    if (chip.classList.contains("selected")) {
+      selectedKeywords.push(kw);
+    } else {
+      selectedKeywords = selectedKeywords.filter(function (k) { return k !== kw; });
+    }
+  });
+  chipRow.appendChild(chip);
+});
+
+/* ================= navigation ================= */
+$("btnGenerate").addEventListener("click", generateReviews);
+$("btnRetry").addEventListener("click", generateReviews);
+$("btnBackStart").addEventListener("click", function () { showStep("stepRate"); });
+$("btnRestart").addEventListener("click", function () { showStep("stepRate"); });
+
+/* ================= generate reviews (backend call) ================= */
+function generateReviews() {
+  selectedReview = null;
+  $("reviewList").innerHTML = "";
+  showStep("stepLoading");
+  $("errorBox").classList.add("hidden");
+  $("loadingBox").classList.remove("hidden");
+
+  if (!BACKEND_URL) {
+    showBackendError("Backend URL is not set. Paste your Cloudflare Worker URL into BACKEND_URL at the top of the script.");
+    return;
+  }
+
+  fetch(BACKEND_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      stars: selectedStars || null,      // null → backend defaults to 5
+      keywords: selectedKeywords         // [] → backend covers overall experience
+    })
+  }).then(function (res) {
+    if (!res.ok) throw new Error("server responded " + res.status);
+    return res.json();
+  }).then(function (data) {
+    const reviews = (data && data.reviews) || [];
+    if (!reviews.length) throw new Error("no reviews in response");
+    renderReviews(reviews);
+    showStep("stepResults");
+  }).catch(function (err) {
+    showBackendError("Couldn't generate reviews (" + err.message + "). Check the Worker URL / deployment and try again.");
+  });
+}
+
+function showBackendError(msg) {
+  $("loadingBox").classList.add("hidden");
+  $("errorBox").classList.remove("hidden");
+  $("errorMsg").textContent = msg;
+}
+
+function renderReviews(reviews) {
+  const list = $("reviewList");
+  reviews.forEach(function (text) {
+    const card = document.createElement("div");
+    card.className = "review-card";
+    card.textContent = text;
+    card.addEventListener("click", function () {
+      const all = list.querySelectorAll(".review-card");
+      for (let i = 0; i < all.length; i++) all[i].classList.remove("selected");
+      card.classList.add("selected");
+      selectedReview = text;
+    });
+    list.appendChild(card);
+  });
+}
+
+/* ================= copy ================= */
+function fallbackCopy(text) {
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  ta.setAttribute("readonly", "");
+  ta.style.position = "fixed";
+  ta.style.top = "0";
+  ta.style.left = "0";
+  ta.style.opacity = "0";
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  ta.setSelectionRange(0, ta.value.length);
+  let ok = false;
+  try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+  document.body.removeChild(ta);
+  return ok;
+}
+
+function copyReview(text) {
+  if (navigator.clipboard && navigator.clipboard.writeText && window.isSecureContext) {
+    return navigator.clipboard.writeText(text).then(function () {
+      return true;
+    }).catch(function () {
+      return fallbackCopy(text);
+    });
+  }
+  return Promise.resolve(fallbackCopy(text));
+}
+
+/* ================= Google review URLs ================= */
+function searchLrdUrl() {
+  return "https://www.google.com/search?kgmid=" + encodeURIComponent(BUSINESS.kgmid) +
+    "&q=" + encodeURIComponent(BUSINESS.name) + "&hl=en&gl=in" +
+    "#lrd=" + BUSINESS.ftid + ",3,,,,";
+}
+
+function mapsReviewUrl() {
+  return "https://www.google.com/maps/place/" + encodeURIComponent(BUSINESS.name) +
+    "/@" + BUSINESS.lat + "," + BUSINESS.lng + ",17z" +
+    "/data=!4m8!3m7!1s" + BUSINESS.ftid +
+    "!8m2!3d" + BUSINESS.lat + "!4d" + BUSINESS.lng +
+    "!9m1!1b1!16s" + encodeURIComponent(BUSINESS.kgmid) + "?hl=en";
+}
+
+function writeReviewUrl() {
+  return "https://search.google.com/local/writereview?placeid=" +
+    encodeURIComponent(BUSINESS.placeId);
+}
+
+function primaryReviewUrl() {
+  if (BUSINESS.placeId) return writeReviewUrl();
+  return searchLrdUrl();
+}
+
+function alternateReviewUrl() {
+  return mapsReviewUrl();
+}
+
+let usedAlternate = false;
+
+$("btnOpenGoogle").addEventListener("click", function () {
+  if (!selectedReview) { toast("Select a review first.", true); return; }
+  usedAlternate = false;
+  const text = selectedReview;
+  copyReview(text).then(function (copied) {
+    toast(copied
+      ? "Review copied ✓ — opening Google…"
+      : "Couldn't auto-copy — long-press the review text to copy it.",
+      !copied);
+    setTimeout(function () {
+      window.open(primaryReviewUrl(), "_blank");
+      $("btnTryAlt").classList.remove("hidden");
+    }, 450);
+  });
+});
+
+$("btnTryAlt").addEventListener("click", function () {
+  if (!selectedReview) { toast("Select a review first.", true); return; }
+  usedAlternate = true;
+  const text = selectedReview;
+  copyReview(text).then(function (copied) {
+    if (!copied) toast("Review not auto-copied — copy it manually.", true);
+    setTimeout(function () {
+      window.open(alternateReviewUrl(), "_blank");
+    }, usedAlternate ? 0 : 450);
+  });
+});
+</script>
+
+</body>
+</html>
